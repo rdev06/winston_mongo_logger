@@ -15,7 +15,13 @@ module.exports = {
     'x-forwarded-proto',
     'x-forwarded-scheme',
     'x-scheme',
-    'if-none-match'
+    'if-none-match',
+    'sec-ch-ua',
+    'sec-uh-mobile',
+    'sec-uh-platform',
+    'sec-fetch-site',
+    'sec-fetch-mode',
+    'sec-fetch-dest'
   ],
   deleteFromReq: [
     'transitional',

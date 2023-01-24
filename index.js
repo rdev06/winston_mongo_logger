@@ -13,6 +13,7 @@ module.exports = function (db, option, label, appName) {
   return {
     connect: async (clientDB) => {
       if (clientDB) {
+        if(!clientDB.readyState) throw 'Provided client is not active';
         if (clientDB.useDb) db = clientDB.useDb(option.dbName);
         else if (clientDB.db) db = clientDB.db(option.dbName);
         else throw 'clientDB is not recognised';
