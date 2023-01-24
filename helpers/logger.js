@@ -1,6 +1,6 @@
 const computeDepth = require('./computeDepth');
 const util = require('util');
-const helpers = require('../node_modules/winston-mongodb/lib/helpers');
+const helpers = require('winston-mongodb/lib/helpers');
 module.exports = function (info, cb) {
   if (!this.logDb) {
     this._opQueue.push({ method: 'log', args: arguments });
