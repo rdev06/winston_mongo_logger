@@ -1,6 +1,7 @@
 const computeDepth = require('./computeDepth');
 const util = require('util');
 const helpers = require('winston-mongodb/lib/helpers');
+const formatResponseBody = require('./formatResponseBody');
 module.exports = function (info, cb) {
   if (!this.logDb) {
     this._opQueue.push({ method: 'log', args: arguments });
@@ -25,6 +26,7 @@ module.exports = function (info, cb) {
     entry.message = this.decolorize ? message.replace(decolorizeRegex, '') : message;
     entry.depth = computeDepth(entry.message);
     entry.meta = helpers.prepareMetaData(info[this.metaKey]);
+    entry.meta.req.body = formatResponseBody(entry.meta.req.body);
     if (this.storeHost) {
       entry.hostname = this.hostname;
     }
