@@ -9,6 +9,6 @@ function isArrayLikeObject(body){
   
   
   module.exports = function formatResponseBody(body){
-    return isArrayLikeObject(body) ? Object.keys(body) : body
+    return isArrayLikeObject(body) ? Object.values(body) : body
   };
   
