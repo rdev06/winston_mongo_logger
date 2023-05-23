@@ -1,11 +1,10 @@
 const { MongoClient } = require('mongodb');
 const expressWinston = require('express-winston');
 const winston = require('winston');
-const _ = require('lodash');
-const axios = require('axios');
 const WinstonMongodb = require('winston-mongodb').MongoDB;
 const logger = require('./helpers/logger');
 const constant = require('./constant');
+const axiosLogIntercept = require('./helpers/axiosLogIntercept');
 
 WinstonMongodb.prototype.log = logger;
 
@@ -13,7 +12,7 @@ module.exports = function (db, option, label, appName) {
   return {
     connect: async (clientDB) => {
       if (clientDB) {
-        if(!clientDB.readyState) throw 'Provided client is not active';
+        if (!clientDB.readyState) throw 'Provided client is not active';
         if (clientDB.useDb) db = clientDB.useDb(option.dbName);
         else if (clientDB.db) db = clientDB.db(option.dbName);
         else throw 'clientDB is not recognised';
@@ -70,93 +69,37 @@ module.exports = function (db, option, label, appName) {
       });
       return logger.log(level, eventName, { meta: data });
     },
-    axiosLogger: async function (
-      collectionName = 'out',
-      expireAfterSeconds = 41472000,
-      deleteFromReq,
-      deleteHeadersKeys
-    ) {
-      if (!deleteFromReq) {
-        deleteFromReq = constant.deleteFromReq;
-      }
-
-      if (!deleteHeadersKeys) {
-        deleteHeadersKeys = constant.deleteHeadersKeys;
-      }
-      const axiosLog = await db
+    axiosLogger: (...args) => axiosLogIntercept.call({db, label}, ...args),
+    traceLogger: async (collectionName = 'trace', expireAfterSeconds = 41472000) => {
+      const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+      const traceDB = await db
         .createCollection(collectionName)
         .then(async (col) => {
-          await col.createIndex({ 'time.startTime': 1 }, { background: true, expireAfterSeconds });
+          await col.createIndex({ timestamp: 1 }, { background: true, expireAfterSeconds });
           return col;
         })
         .catch(async (err) => {
           if (err.code !== 48) throw err;
-          const ttlIndexName = 'time.startTime_1';
+          const ttlIndexName = 'timestamp_1';
           const col = db.collection(collectionName);
           const prevTtlInfo = (await col.indexes()).find((e) => e.name === ttlIndexName);
           if (!prevTtlInfo || prevTtlInfo.expireAfterSeconds != expireAfterSeconds) {
             prevTtlInfo && (await col.dropIndex(ttlIndexName));
-            await col.createIndex(
-              { 'time.startTime': 1 },
-              { background: true, expireAfterSeconds }
-            );
+            await col.createIndex({ timestamp: 1 }, { background: true, expireAfterSeconds });
           }
           return col;
         });
-      axios.interceptors.request.use(
-        async function (req) {
-          req.time = {
-            startTime: new Date(),
+      process.stdout.write = async (chunk, encoding, callback) => {
+        await traceDB
+          .insertOne({
+            chunk: chunk.trim(),
+            timestamp: new Date(),
             utcDate: new Date(new Date().setUTCHours(0, 0, 0, 0))
-          };
-          const saveReq = _.omit(req, deleteFromReq);
-          saveReq.headers = _.omit(req.headers, deleteHeadersKeys);
+          })
+          .catch(console.error);
 
-          const inserted = await axiosLog.insertOne({ req: saveReq, time: req.time, label });
-          if (inserted.acknowledged) {
-            req.logId = inserted.insertedId;
-          }
-          return req;
-        },
-        (err) => {
-          return Promise.reject(err);
-        }
-      );
-
-      function saveResponse(res) {
-        const endTime = new Date();
-        if (res.config.logId) {
-          const toUpdate = {
-            status: res.status,
-            statusText: res.statusText,
-            data: res.data,
-            headers: res.headers
-          };
-          axiosLog
-            .updateOne(
-              { _id: res.config.logId },
-              {
-                $set: {
-                  res: toUpdate,
-                  'time.endTime': endTime,
-                  'time.duration': endTime - res.config.time.startTime
-                }
-              }
-            )
-            .catch(console.error);
-        }
-      }
-
-      axios.interceptors.response.use(
-        async function (res) {
-          saveResponse(res);
-          return res;
-        },
-        (err) => {
-          saveResponse({ config: err.config, ...err.response });
-          return Promise.reject(err);
-        }
-      );
+        return originalStdoutWrite(chunk, encoding, callback);
+      };
     }
   };
 };
