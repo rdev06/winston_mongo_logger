@@ -46,7 +46,7 @@ module.exports = async function (
         saveReq.headers = _.omit(req.headers, deleteHeadersKeys);
 
         const inserted = await axiosLog.insertOne({ req: saveReq, time: req.time, label });
-        if (inserted.insertedId) {
+        if (!!inserted.insertedId) {
           req.logId = inserted.insertedId;
         }
         return req;
