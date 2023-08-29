@@ -106,14 +106,15 @@ module.exports = function (db, option, label, appName) {
       return (req, res, next) => {
         let _chunk = '';
         res.write = function (chunk) {
-          _chunk += chunk;
+          if(chunk) _chunk += chunk;
         };
         const end = res.end;
         res.end = function (chunk, encoding) {
-          _chunk += chunk;
+          if(!chunk) _chunk = chunk;
+          else _chunk += chunk;
           end.call(res, _chunk, encoding);
         };
-        next();
+        return next();
       }
     }
   };
