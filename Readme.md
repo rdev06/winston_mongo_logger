@@ -35,3 +35,18 @@ main()
     process.exit(1);
   });
 ```
+
+
+## If you want to capture some data at any specific place then
+```js
+
+logger.customEvent('some_event_name', {foo: 'bar'}, 'info') // third argument is level which can be any of these [info, warn, error]
+
+```
+
+## If you want capture logs of streaming data (i.e res.write('some data') then do as below)
+
+```js
+router.use(logger.captureStreaming(), session) // session is express-session midleware
+
+```

@@ -100,6 +100,21 @@ module.exports = function (db, option, label, appName) {
 
         return originalStdoutWrite(chunk, encoding, callback);
       };
+    },
+    captureStreaming: () => {
+      console.warn('Use this only in place where you dont want to capture streaming else this will slow down your system');
+      return (req, res, next) => {
+        let _chunk = '';
+        res.write = function (chunk) {
+          _chunk += chunk;
+        };
+        const end = res.end;
+        res.end = function (chunk, encoding) {
+          _chunk += chunk;
+          end.call(res, _chunk, encoding);
+        };
+        next();
+      }
     }
   };
 };

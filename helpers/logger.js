@@ -26,7 +26,9 @@ module.exports = function (info, cb) {
     entry.message = this.decolorize ? message.replace(decolorizeRegex, '') : message;
     entry.depth = computeDepth(entry.message);
     entry.meta = helpers.prepareMetaData(info[this.metaKey]);
-    entry.meta.req.body = formatResponseBody(entry.meta.req.body);
+    if(entry.meta.req){
+      entry.meta.req.body = formatResponseBody(entry.meta.req.body);
+    }
     if (this.storeHost) {
       entry.hostname = this.hostname;
     }
