@@ -102,7 +102,7 @@ module.exports = function (db, option, label, appName) {
       };
     },
     captureStreaming: () => {
-      console.warn('winston_mongo_logger/captureStreaming: Use this only in place where you dont want streaming');
+      process.env.IS_LOCAL === 'true' && console.warn('winston_mongo_logger/captureStreaming: Use this only in place where you dont want streaming');
       return (req, res, next) => {
         let _chunk = '';
         res.write = function (chunk) {
