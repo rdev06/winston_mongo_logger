@@ -1,6 +1,6 @@
 {
   "name": "winston_mongo_logger",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "This works as a middleware to enable mongo logging in a format of logstash",
   "main": "index.js",
   "repository": {
@@ -20,12 +20,11 @@
   "homepage": "https://github.com/rdev06/winston_mongo_logger#readme",
   "dependencies": {
     "express-winston": "^4.2.0",
-    "winston": "^3.8.2",
-    "winston-mongodb": "^5.1.0"
+    "winston": "^3.13.1",
+    "winston-mongodb": "^5.1.1"
   },
   "peerDependencies": {
-    "axios": "^0.27.2",
-    "express": "^4.18.1",
-    "mongodb": "^4.13.0"
+    "express": "^4.19.2",
+    "mongodb": "^4.17.2"
   }
 }

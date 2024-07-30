@@ -1,12 +1,12 @@
 const _ = require('lodash');
-const axios = require('axios');
 const constant = require('../constant');
 
 module.exports = async function (
     collectionName = 'out',
     expireAfterSeconds = 41472000,
     deleteFromReq,
-    deleteHeadersKeys
+    deleteHeadersKeys,
+    axios
   ) {
     const label = this.label;
     if (!deleteFromReq) {
@@ -15,6 +15,9 @@ module.exports = async function (
 
     if (!deleteHeadersKeys) {
       deleteHeadersKeys = constant.deleteHeadersKeys;
+    }
+    if(!axios){
+      axios = require('axios');
     }
     const axiosLog = await this.db
       .createCollection(collectionName)
