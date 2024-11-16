@@ -48,7 +48,7 @@ module.exports = async function (
         const saveReq = _.omit(req, deleteFromReq);
         saveReq.headers = _.omit(req.headers, deleteHeadersKeys);
         
-        if(saveReq.data.constructor.name === 'FormData'){
+        if(saveReq.data?.constructor?.name === 'FormData'){
           saveReq.data = 'FormData'
         }
 
