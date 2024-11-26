@@ -72,6 +72,9 @@ module.exports = async function (
           data: res.data,
           headers: res.headers
         };
+        if(parseInt(toUpdate.headers['content-length']) > 14000000){
+          toUpdate.data = `Data of size ${toUpdate.headers['content-length']}`
+        }
         axiosLog
           .updateOne(
             { _id: res.config.logId },
